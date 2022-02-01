@@ -1,0 +1,14 @@
+name: asc-torch
+
+channels:
+        - pytorch
+        - defaults
+dependencies:
+        - python=3.8
+        - pytorch
+        - torchvision
+        - torchaudio
+        - cpuonly #or cudatoolkit=11.3
+        - pandas
+        - pip:
+                - librosa
