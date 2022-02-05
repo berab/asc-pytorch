@@ -116,7 +116,6 @@ class ModelMobnet(nn.Module):
 
         first_channels = _make_divisible(32 * alpha, 8)
         #here freq splitted
-        print(first_channels,'first chan')
         self.mobile_net_block = MobileNetBlock(in_channels, first_channels, last_channels, alpha) # 1/2 since splitted
 
         #here freq conc.'ed
@@ -129,10 +128,10 @@ class ModelMobnet(nn.Module):
 
         self.bn = nn.BatchNorm2d(num_features=num_classes,affine=False)        
         self.softmax = nn.Softmax(dim=1)
+
     def forward(self, x):
         split1 = freq_split1(x)
         split2 = freq_split2(x)
-        print(split1.shape)
         split1 = self.mobile_net_block(split1)
         split2 = self.mobile_net_block(split2)
         x = torch.cat((split1, split2), 2) # freq axis '2'
@@ -145,7 +144,7 @@ class ModelMobnet(nn.Module):
         return x
 
 # net = model_mobnet()
-net = ModelMobnet(num_classes=3)
-x = torch.ones(3, 6, 128, 461)
-x = net(x)
-print(x.shape)
+# net = ModelMobnet(num_classes=3)
+# x = torch.ones(3, 6, 128, 461)
+# x = net(x)
+# print(x.shape)
