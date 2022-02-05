@@ -116,14 +116,26 @@ class channel_attention(nn.Module): #check dims for nn linear and cont
    def __init__(self, in_channels, ratio=8):
       super().__init__()
 
-      self.fc1 = nn.Linear(in_channels//ratio,
-                           bias=True,
+      self.fc1 = nn.Linear(in_channels, in_channels//ratio,
+                           bias=True
                            )
-
-
+      nn.init.normal_(self.fc1.bias)
+      self.fc2 = nn.Linear(in_channels//ratio, in_channels,
+                           bias=True
+                           )
+      nn.init.normal_(self.fc2.bias)
+      
    def forward(self, x):
-      pass
-
+      inputs = x
+      x = x.mean(dim=-1, keepdim=True).mean(dim=-2, keepdim=True) #globalavg2d trick
+      x = self.fc1(x)
+      x = self.fc2(x)
+      y, _  = torch.max(inputs, (1,2)) #globalmaxpool?
+      y = self.fc1(y)
+      y = self.fc2(y)
+      x = x + y
+      x = F.sigmoid(x)
+      return torch.multiply(inputs,x)
 
 class ModelFcnn(nn.Module):
    def __init__(self, num_classes, in_channels=6, num_filters=[24,48,96]):
