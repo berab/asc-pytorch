@@ -31,14 +31,14 @@ batch_size=32
 num_epochs=2
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 
-X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
-X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
+# X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
+# X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
 
 X_val, y_val = load_data_2020(feat_path, val_csv, num_freq_bin, 'logmel')
 X_val = np.transpose(X_val,(0,3,1,2)) 
 
-trainloader = torch.utils.data.DataLoader([[X_train[i], y_train[i]] for i in range(len(y_train))], 
-                                            batch_size=batch_size, shuffle=True, num_workers=2) 
+# trainloader = torch.utils.data.DataLoader([[X_train[i], y_train[i]] for i in range(len(y_train))], 
+#                                             batch_size=batch_size, shuffle=True, num_workers=2) 
 validloader = torch.utils.data.DataLoader([[X_val[i], y_val[i]] for i in range(len(y_val))], 
                                             batch_size=batch_size, num_workers=2) 
 
@@ -51,6 +51,12 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
     train_loss = 0.0
     net.train()
+    #dummy input
+
+    x = np.random.random((2,3,128,461))
+    y = np.random.random((2,3,1,1))
+    trainloader = torch.utils.data.DataLoader([[x[i], y[i]] for i in range(len(y))], 
+                                            batch_size=batch_size, shuffle=True, num_workers=2) 
     for i, data in enumerate(trainloader):
 
         inputs, labels = data[0].to(device), data[1].to(device)
