@@ -30,13 +30,12 @@ num_epochs=2
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 
 data_val, y_val = load_data_2020(feat_path, val_csv, num_freq_bin, 'logmel')
-data_val = np.transpose(x,(0,3,1,2)) # need to change channel last to channel one
-y_val = keras.utils.to_categorical(y_val, num_classes)
+data_val = np.transpose(data_val,(0,3,1,2)) # need to change channel last to channel one
 
 trainloader = torch.utils.data.DataLoader([[data_val[i], y_val[i]] for i in range(len(y_val))], 
                                             batch_size=batch_size, shuffle=True, num_workers=2) 
 
-model = model_mobnet(num_classes, in_channels=num_audio_channels*3, num_filters=24)
+net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -46,7 +45,7 @@ for epoch in range(2):  # loop over the dataset multiple times
     for i, data in enumerate(trainloader):
 
         inputs, labels = data
-
+        labels = labels.type(torch.LongTensor)
         optimizer.zero_grad()
         # forward + backward + optimize
         outputs = net(inputs)
