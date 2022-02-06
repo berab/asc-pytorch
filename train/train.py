@@ -39,7 +39,7 @@ net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-for epoch in range(2):  # loop over the dataset multiple times
+for epoch in range(num_epochs):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(trainloader):
@@ -50,13 +50,14 @@ for epoch in range(2):  # loop over the dataset multiple times
         # forward + backward + optimize
         outputs = net(inputs)
         loss = criterion(outputs, labels)
-        print('done')
         loss.backward()
         optimizer.step()
 
         # print statistics
         running_loss += loss.item()
-        print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / (i+1):.3f}')
+        if i % 2000 == 1999:    # print every 2000 mini-batches
+            print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+            running_loss = 0.0
 
 print('Finished Training')
 
