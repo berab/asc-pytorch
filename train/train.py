@@ -22,6 +22,7 @@ experiments = 'exp_mobnet'
 if not os.path.exists(experiments):
     os.makedirs(experiments)
 
+num_freq_bin = 128
 num_audio_channels = 2
 num_classes = 3
 batch_size=32
