@@ -22,6 +22,8 @@ experiments = 'exp_mobnet'
 if not os.path.exists(experiments):
     os.makedirs(experiments)
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 num_freq_bin = 128
 num_audio_channels = 2
 num_classes = 3
@@ -29,22 +31,29 @@ batch_size=32
 num_epochs=2
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 
-data_val, y_val = load_data_2020(feat_path, val_csv, num_freq_bin, 'logmel')
-data_val = np.transpose(data_val,(0,3,1,2)) # need to change channel last to channel one
+X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
+X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
 
-trainloader = torch.utils.data.DataLoader([[data_val[i], y_val[i]] for i in range(len(y_val))], 
+X_val, y_val = load_data_2020(feat_path, val_csv, num_freq_bin, 'logmel')
+X_val = np.transpose(X_val,(0,3,1,2)) 
+
+trainloader = torch.utils.data.DataLoader([[X_train[i], y_train[i]] for i in range(len(y_train))], 
                                             batch_size=batch_size, shuffle=True, num_workers=2) 
+validloader = torch.utils.data.DataLoader([[X_val[i], y_val[i]] for i in range(len(y_val))], 
+                                            batch_size=batch_size, num_workers=2) 
 
 net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24)
+net.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 for epoch in range(num_epochs):  # loop over the dataset multiple times
 
-    running_loss = 0.0
+    train_loss = 0.0
+    net.train()
     for i, data in enumerate(trainloader):
 
-        inputs, labels = data
+        inputs, labels = data[0].to(device), data[1].to(device)
         labels = labels.type(torch.LongTensor)
         optimizer.zero_grad()
         # forward + backward + optimize
@@ -54,12 +63,23 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         optimizer.step()
 
         # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-            running_loss = 0.0
+        train_loss += loss.item()
+        if i % 20 == 19:    # print every 2000 mini-batches
+            print(f'[{epoch + 1}, {i + 1:5d}] loss: {train_loss / 2000:.3f}')
+            train_loss = 0.0
 
-print('Finished Training')
+    valid_loss = 0.0
+    net.eval()
+    for i, data in enumerate(validloader):
+        inputs, labels = data[0].to(device), data[1].to(device)
+        labels = labels.type(torch.LongTensor)
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        valid_loss = loss.item()*data.size(0)
+    
+    print(f'Epoch {e+1} \t\t Training Loss: {train_loss / len(trainloader)} \t\t Validation Loss: {valid_loss / len(validloader)}')
+
+print('Finished Training')  
 
 
 def data_generation(batch_ids, X_train, y_train):
