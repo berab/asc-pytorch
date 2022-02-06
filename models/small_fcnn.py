@@ -166,11 +166,13 @@ class ModelFcnn(nn.Module):
                                      use_relu=True)
 
       self.bn = nn.BatchNorm2d(num_classes, affine=False)
+      self.channel_attention = channel_attention(in_channels=num_classes, ratio=2)
       
    def forward(self, x):
       x = self.conv_block1(x)
       x = self.conv_block2(x)
       x = self.conv_block3(x)
       x = self.ResnetLayer(x)
+      x = self.channel_attention(x)
       x = x.mean(dim=-1, keepdim=True).mean(dim=-2, keepdim=True) #globalavg2d trick
       x = self.softmax(x)

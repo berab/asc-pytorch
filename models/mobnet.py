@@ -140,7 +140,7 @@ class ModelMobnet(nn.Module):
         x = self.resnet2(x)
         x = self.bn(x)
         x = x.mean(dim=-1, keepdim=True).mean(dim=-2, keepdim=True) #globalavg2d trick
-        x = self.softmax(x)
+        x = self.softmax(x).reshape(x.shape[0], x.shape[1])
         return x
 
 # net = model_mobnet()
