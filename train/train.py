@@ -29,11 +29,12 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 num_freq_bin = 128
 num_audio_channels = 2
 num_classes = 3
-batch_size=32
-num_epochs=2
+batch_size=64
+num_epochs=100
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 alpha = 0.4
 X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
+print('training data unpickled!')
 X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
 
 X_val, y_val = load_data_2020(feat_path, val_csv, num_freq_bin, 'logmel')
@@ -48,24 +49,23 @@ net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24
 net.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-# lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
 
 for epoch in range(num_epochs):  # loop over the dataset multiple times
 
     train_loss = 0.0
     net.train()
     #dummy input
-
+    
     for i, data in enumerate(trainloader):
 
-        inputs, labels = data[0].to(device), data[1].to(device)
+        inputs, labels = data[0].to(device), data[1].type(torch.LongTensor).to(device)
 
         freq_mask = transforms.FrequencyMasking(40, True)
         time_mask = transforms.TimeMasking(80, True)
         inputs = time_mask(freq_mask(inputs)) # masking
-        labels = labels.type(torch.LongTensor)
         inputs, labels_a, labels_b, lam = mixup_data(inputs, labels,
-                                                       alpha, device=='cuda')
+                alpha, device=='cuda:0')
 
         optimizer.zero_grad()
         # forward + backward + optimize
@@ -74,22 +74,27 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         loss = mixup_criterion(criterion, outputs, labels_a, labels_b, lam)
         loss.backward()
         optimizer.step()
-        # lr_scheduler.step() #not sure
+        lr_scheduler.step() #not sure
         # print statistics
         train_loss += loss.item()
-        if i % 20 == 19:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {train_loss / 2000:.3f}')
+        if i % 100 == 99:    # print every 2000 mini-batches
+            print(f'[{epoch + 1}, {i + 1:5d}] loss: {train_loss / 100:.3f}')
             train_loss = 0.0
 
     valid_loss = 0.0
+    correct = 0
+    total = 0
     net.eval()
     for i, data in enumerate(validloader):
-        inputs, labels = data[0].to(device), data[1].to(device)
-        labels = labels.type(torch.LongTensor)
+        inputs, labels = data[0].to(device), data[1].type(torch.LongTensor).to(device)
         outputs = net(inputs)
         loss = criterion(outputs, labels)
-        valid_loss = loss.item()*data.size(0)
+        valid_loss += loss.item()
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += predicted.eq(labels).cpu().sum()
     
-    print(f'Epoch {e+1} \t\t Training Loss: {train_loss / len(trainloader)} \t\t Validation Loss: {valid_loss / len(validloader)}')
+    acc = 100.*correct/total 
+    print(f'Epoch {epoch+1} \t\t Training Loss: {train_loss / len(trainloader)} \t\t Validation Loss: {valid_loss / len(validloader)} \t\t Accuracy: {acc} %')
 
 print('Finished Training')  

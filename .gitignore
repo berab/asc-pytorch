@@ -1,0 +1,4 @@
+# Ignore those files 
+train/features/
+token
+__pycache__
