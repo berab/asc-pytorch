@@ -29,10 +29,12 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 num_freq_bin = 128
 num_audio_channels = 2
 num_classes = 3
-batch_size=64
+batch_size=128
 num_epochs=100
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 alpha = 0.4
+max_lr = 0.1
+
 X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
 print('training data unpickled!')
 X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
@@ -48,8 +50,8 @@ validloader = torch.utils.data.DataLoader([[X_val[i], y_val[i]] for i in range(l
 net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24)
 net.to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.05, momentum=0.9)
-lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=50, T_mult=2, eta_min=0.05*1e-4, verbose=True)
+optimizer = optim.SGD(net.parameters(), lr=mx_lr, momentum=0.9)
+lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=50, T_mult=2, eta_min=mx_lr*1e-4, verbose=True)
 iters = len(trainloader)
 
 for epoch in range(num_epochs):  # loop over the dataset multiple times
@@ -62,8 +64,8 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
         inputs, labels = data[0].to(device), data[1].type(torch.LongTensor).to(device)
 
-        freq_mask = transforms.FrequencyMasking(40, True)
-        time_mask = transforms.TimeMasking(80, True)
+        freq_mask = transforms.FrequencyMasking(13, True)
+        time_mask = transforms.TimeMasking(40, True)
         inputs = time_mask(freq_mask(inputs)) # masking
         inputs, labels_a, labels_b, lam = mixup_data(inputs, labels,
                 alpha, device=='cuda:0')
