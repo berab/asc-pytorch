@@ -69,7 +69,7 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         optimizer.zero_grad()
         # forward + backward + optimize
         outputs = net(inputs)
-        # loss = criterion(outputs, labels)
+        #loss = criterion(outputs, labels)
         loss = mixup_criterion(criterion, outputs, labels_a, labels_b, lam)
         loss.backward()
         optimizer.step()
@@ -77,7 +77,7 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         # print statistics
         train_loss += loss.item()
         if i % 100 == 99:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {train_loss / 100:.3f}')
+            print(f'[Epoch, Batch]: [{epoch + 1}, {i + 1:5d}] \t\t Training loss: {train_loss / 100:.3f}')
             train_loss = 0.0
 
     valid_loss = 0.0
@@ -94,6 +94,6 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         correct += predicted.eq(labels).cpu().sum()
     
     acc = 100.*correct/total 
-    print(f'Epoch {epoch+1} \t\t Training Loss: {train_loss / len(trainloader)} \t\t Validation Loss: {valid_loss / len(validloader)} \t\t Accuracy: {acc} %')
+    print(f'Epoch {epoch+1} \t\t Validation Loss: {valid_loss / len(validloader)} \t\t Accuracy: {acc} %')
 
 print('Finished Training')  

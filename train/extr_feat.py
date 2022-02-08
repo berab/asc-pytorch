@@ -5,9 +5,9 @@ import torch
 import torchaudio
 import torchaudio.transforms as T
 
-file_path = 'data_2020/'
-csv_file = 'data_2020/evaluation_setup/fold1_all.csv' # train + evaluate
-output_path = 'features/logmel128_scaled_d_dd'
+file_path = '../data_2020/'
+csv_file = '../data_2020/evaluation_setup/fold1_all.csv' # train + evaluate
+output_path = '../features/logmel128_scaled_d_dd'
 feature_type = 'logmel'
 
 sr = 48000

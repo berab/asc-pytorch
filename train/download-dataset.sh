@@ -26,3 +26,4 @@ rm -f ./data_2020/meta.zip ./data_2020/doc.zip
 
 mv ./data_2020/TAU-urban-acoustic-scenes-2020-3class-development/* ./data_2020/ && rm -d ./data_2020/TAU-urban-acoustic-scenes-2020-3class-development
 mv ./data_2020/TAU-urban-acoustic-scenes-2020-3class-evaluation/audio/* ./data_2020/audio/ && rm -rf ./data_2020/TAU-urban-acoustic-scenes-2020-3class-evaluation
+mv ./data_2020 ../
