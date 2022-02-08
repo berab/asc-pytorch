@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pickle5 as pickle
+import pickle as pickle
 
 
 def load_data_2020(feat_path, csv_path, feat_dim, file_type):

@@ -6,7 +6,7 @@ import torch.optim as optim
 from torch import nn
 from training_functions import mixup_data, mixup_criterion
 import sys
-
+from torchaudio import transforms
 
 sys.path.append('..')
 sys.path.append('../models')
@@ -32,7 +32,7 @@ num_classes = 3
 batch_size=32
 num_epochs=2
 sample_num = len(open(train_csv, 'r').readlines()) - 1
-
+alpha = 0.4
 X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
 X_train = np.transpose(X_train,(0,3,1,2)) # need to change channel last to channel one
 
@@ -65,7 +65,7 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         inputs = time_mask(freq_mask(inputs)) # masking
         labels = labels.type(torch.LongTensor)
         inputs, labels_a, labels_b, lam = mixup_data(inputs, labels,
-                                                       args.alpha, device=='cuda')
+                                                       alpha, device=='cuda')
 
         optimizer.zero_grad()
         # forward + backward + optimize
