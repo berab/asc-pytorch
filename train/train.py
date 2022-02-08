@@ -1,5 +1,6 @@
 import os
 import argparse
+from tabnanny import verbose
 import numpy as np
 import torch
 import torch.optim as optim
@@ -47,8 +48,9 @@ validloader = torch.utils.data.DataLoader([[X_val[i], y_val[i]] for i in range(l
 net = ModelMobnet(num_classes, in_channels=num_audio_channels*3, num_channels=24)
 net.to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
+optimizer = optim.SGD(net.parameters(), lr=0.05, momentum=0.9)
+lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=50, T_mult=2, eta_min=0.05*1e-4, verbose=True)
+iters = len(trainloader)
 
 for epoch in range(num_epochs):  # loop over the dataset multiple times
 
@@ -73,7 +75,10 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         loss = mixup_criterion(criterion, outputs, labels_a, labels_b, lam)
         loss.backward()
         optimizer.step()
-        lr_scheduler.step() #not sure
+        
+        # if using warm restart, then update after each batch iteration
+        lr_scheduler.step(epoch + i / iters)
+
         # print statistics
         train_loss += loss.item()
         if i % 100 == 99:    # print every 2000 mini-batches
