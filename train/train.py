@@ -5,20 +5,19 @@ import torch
 import torch.optim as optim
 from torch import nn
 from training_functions import mixup_data, mixup_criterion
-import sys
 from torchaudio import transforms
+
+import sys
 
 sys.path.append('..')
 sys.path.append('../models')
 from utils import *
-#from funcs import *
 from mobnet import ModelMobnet
-from csv_test import load_labels
 
 data_path = '../data_2020/'
 train_csv = data_path + 'evaluation_setup/fold1_train.csv'
 val_csv = data_path + 'evaluation_setup/fold1_evaluate.csv'
-feat_path = 'features/logmel128_scaled_d_dd/'
+feat_path = '../features/logmel128_scaled_d_dd/'
 experiments = 'exp_mobnet'
 
 if not os.path.exists(experiments):
