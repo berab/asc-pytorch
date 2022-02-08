@@ -1,4 +1,6 @@
 # Ignore those files 
+data_2020
+features
 train/features/
 token
 __pycache__
