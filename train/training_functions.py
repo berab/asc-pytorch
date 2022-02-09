@@ -1,11 +1,11 @@
 import torch
 import numpy as np
 
-def channel_confusion(x_a, x_b):
+def channel_confusion(x_a, x_b, use_cuda=True):
     swap_inds = [1, 0, 3, 2, 5, 4]
 
     if x_a.shape[1]==6:
-        for j in range(6):
+        for j in torch.arange(6).cuda():
             if np.random.randint(2) == 1:
                 x_a[j, :, :, :] = x_a[j:j+1, swap_inds, :, :]
             if np.random.randint(2) == 1:
@@ -27,7 +27,7 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
         index = torch.randperm(batch_size)
     
     x_a, x_b = x, x[index, :]
-    x_a, x_b = channel_confusion(x_a, x_b)
+    x_a, x_b = channel_confusion(x_a, x_b, use_cuda)
     mixed_x = lam * x_a + (1 - lam) * x_b
     y_a, y_b = y, y[index]
     return mixed_x, y_a, y_b, lam
