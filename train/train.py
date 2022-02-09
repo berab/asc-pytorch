@@ -29,11 +29,11 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 num_freq_bin = 128
 num_audio_channels = 2
 num_classes = 3
-batch_size=128
+batch_size=64
 num_epochs=100
 sample_num = len(open(train_csv, 'r').readlines()) - 1
 alpha = 0.4
-max_lr = 0.1
+mx_lr = 0.1
 
 X_train, y_train = load_data_2020(feat_path, train_csv, num_freq_bin, 'logmel')
 print('training data unpickled!')
@@ -53,7 +53,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=mx_lr, momentum=0.9)
 lr_scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=50, T_mult=2, eta_min=mx_lr*1e-4, verbose=True)
 iters = len(trainloader)
-
+freq_mask = transforms.FrequencyMasking(13,True).to(device)
+time_mask = transforms.TimeMasking(40,True).to(device)
 for epoch in range(num_epochs):  # loop over the dataset multiple times
 
     train_loss = 0.0
@@ -64,8 +65,7 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
         inputs, labels = data[0].to(device), data[1].type(torch.LongTensor).to(device)
 
-        freq_mask = transforms.FrequencyMasking(13, True)
-        time_mask = transforms.TimeMasking(40, True)
+       
         inputs = time_mask(freq_mask(inputs)) # masking
         inputs, labels_a, labels_b, lam = mixup_data(inputs, labels,
                 alpha, device=='cuda:0')
