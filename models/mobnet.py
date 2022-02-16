@@ -66,7 +66,7 @@ class bottleneck(nn.Module):
         tchannel = in_channels*t
         cchannel = int(out_channels * alpha)
         self.conv_block = conv_block(in_channels, tchannel, kernel_size=(1,1), stride=1, padding='same')
-        self.dconv = nn.Conv2d(tchannel, tchannel, kernel_size, stride=s, padding=(1,1))
+        self.dconv = nn.Conv2d(tchannel, tchannel, kernel_size, stride=s, padding=1, groups=tchannel)
         self.bn1 = nn.BatchNorm2d(tchannel)
         self.conv = nn.Conv2d(tchannel, cchannel, kernel_size=(1,1), padding='same')
         self.bn2 = nn.BatchNorm2d(cchannel)
@@ -139,8 +139,8 @@ class ModelMobnet(nn.Module):
         x = self.dropout(x)
         x = self.resnet2(x)
         x = self.bn(x)
-        x = x.mean(dim=-1, keepdim=True).mean(dim=-2, keepdim=True) #globalavg2d trick
-        x = self.softmax(x).reshape(x.shape[0], x.shape[1])
+        x = x.mean(dim=(2,3))
+        x = self.softmax(x)
         return x
 
 # net = model_mobnet()
