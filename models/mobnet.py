@@ -1,4 +1,4 @@
-"""MobileNet v2 models for Keras.
+"""MobileNet v2 models for PyTorch
 # Reference
 - [Inverted Residuals and Linear Bottlenecks Mobile Networks for
    Classification, Detection and Segmentation]
